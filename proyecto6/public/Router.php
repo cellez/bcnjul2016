@@ -21,19 +21,18 @@
 function router($url = "/", $base=array())
 {	
 	$validAction = array(
-	    'application' => array(
-	        'index'=>array('index')
-	    ),
 		'users' => array(
 			'crud'=>array('index','select','insert','update','delete')
 		)
 	);
 
 	$url = explode("/", $url);
-	
-	$default = $base['default'];
-	if(isset($url[1]) && strlen($url[1])>0){		
-    	$default = isset($base['routes']['/'.$url[1]]) ? $base['routes']['/'.$url[1]] : $default;
+
+	$default = $base['router']['default'];
+	$def = false;
+	if(isset($url[1]) && strlen($url[1])>0 && isset($base['router']['routes']['/'.$url[1]])){	
+    	$default = $base['router']['routes']['/'.$url[1]];
+		$def = true;
 	}    
 
 	$router = array('module'=>'','controller'=>'','action'=>'','params'=>array());
@@ -47,13 +46,15 @@ function router($url = "/", $base=array())
 	} 
 	else 
 	{
-		$ini = isset($default['module']) ? $default['module'] : 'index';
+		if($def){
+			$ini = isset($default['module']) ? $default['module'] : 'index';		
+			if(file_exists('../modules/'.$ini))
+			{
+				$router['module'] = $ini;
+				$module_ok = true;
+			} 
+		}
 
-		if(file_exists('../modules/'.$ini))
-		{
-			$router['module'] = $ini;
-			$module_ok = true;
-		} 
 	}
 
 	// Controllers
@@ -109,7 +110,7 @@ function router($url = "/", $base=array())
 				if(isset($url[$elm+1]) && strlen($url[$elm+1])>0)
 				{
 					$router['params'][$url[$elm]] = $url[$elm+1];
-				}  
+				} 
 				else 
 				{
 					$params_ok = false;	
